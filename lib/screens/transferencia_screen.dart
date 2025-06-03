@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:share_plus/share_plus.dart';
 
 class TransferenciaScreen extends StatefulWidget {
   final String? contaDestino;
@@ -29,7 +30,6 @@ class _TransferenciaScreenState extends State<TransferenciaScreen> {
   @override
   void initState() {
     super.initState();
-    // Inicializa controllers com valores vindos dos argumentos, se existirem
     _contaController = TextEditingController(text: widget.contaDestino ?? '');
     _valorController = TextEditingController(
       text: widget.valor != null ? widget.valor!.toStringAsFixed(2) : '',
@@ -44,7 +44,6 @@ class _TransferenciaScreenState extends State<TransferenciaScreen> {
   }
 
   Future<void> _selecionarImagem(bool daCamera) async {
-    // Solicita permissão de câmera (necessário para câmera)
     if (daCamera) {
       final status = await Permission.camera.request();
       if (!status.isGranted) {
@@ -54,7 +53,6 @@ class _TransferenciaScreenState extends State<TransferenciaScreen> {
         return;
       }
     }
-    // Para galeria, em Android 13+ pode usar Permission.photos; em Android < 13, READ_EXTERNAL_STORAGE
     final statusGaleria = await Permission.photos.request();
     if (!statusGaleria.isGranted) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -94,7 +92,6 @@ class _TransferenciaScreenState extends State<TransferenciaScreen> {
       _submetendo = true;
     });
 
-    // Simula delay de chamada a serviço
     await Future.delayed(Duration(seconds: 2));
 
     setState(() {
@@ -124,7 +121,16 @@ class _TransferenciaScreenState extends State<TransferenciaScreen> {
         actions: [
           TextButton(
             onPressed: () {
-              Navigator.pop(context); // fecha o diálogo
+              // Compartilhar via WhatsApp ou outro app
+              final mensagem =
+                  'Transferência de R\$ ${valor.toStringAsFixed(2)} para $conta realizada com sucesso!';
+              Share.share(mensagem);
+            },
+            child: Text('Compartilhar'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
               Navigator.popUntil(
                 context,
                 ModalRoute.withName('/principal'),
@@ -162,8 +168,6 @@ class _TransferenciaScreenState extends State<TransferenciaScreen> {
                   style: theme.textTheme.titleLarge,
                 ),
                 SizedBox(height: 24),
-
-                // Campo de conta destino
                 TextFormField(
                   controller: _contaController,
                   decoration: InputDecoration(
@@ -174,8 +178,6 @@ class _TransferenciaScreenState extends State<TransferenciaScreen> {
                   val == null || val.isEmpty ? 'Informe a conta' : null,
                 ),
                 SizedBox(height: 16),
-
-                // Campo de valor
                 TextFormField(
                   controller: _valorController,
                   decoration: InputDecoration(
@@ -192,8 +194,6 @@ class _TransferenciaScreenState extends State<TransferenciaScreen> {
                   },
                 ),
                 SizedBox(height: 24),
-
-                // Botões para câmera e galeria
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
@@ -210,8 +210,6 @@ class _TransferenciaScreenState extends State<TransferenciaScreen> {
                   ],
                 ),
                 SizedBox(height: 16),
-
-                // Pré-visualização da imagem, se selecionada
                 if (_imagemSelecionada != null) ...[
                   ClipRRect(
                     borderRadius: BorderRadius.circular(8),
@@ -223,8 +221,6 @@ class _TransferenciaScreenState extends State<TransferenciaScreen> {
                   ),
                   SizedBox(height: 24),
                 ],
-
-                // Botão de enviar
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
